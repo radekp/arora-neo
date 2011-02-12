@@ -790,6 +790,14 @@ void TabWidget::webViewUrlChanged(const QUrl &url)
         if (vid != "")
             startPlayer("http://www.youtube.com/watch?v=" + vid);
 
+        if (newurl.endsWith(".deb") &&
+            QMessageBox::question(this, tr("Install package"),
+                          tr("Install package?") + "\n" + newurl,
+                          QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+        {
+            QProcess::execute("raptor", QStringList() << "-i" << newurl);
+        }   
+        
         m_tabBar->setTabData(index, url);
     }
     emit tabsChanged();
