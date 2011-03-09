@@ -79,7 +79,7 @@
 #include <qsslconfiguration.h>
 #include <qsslerror.h>
 
-#if QT_VER_DEFINE >= 0x040500
+#if USE_NETWORK_DISK_CACHE
 #include <qnetworkdiskcache.h>
 #include <qdesktopservices.h>
 #endif
@@ -97,7 +97,7 @@ NetworkAccessManager::NetworkAccessManager(QObject *parent)
 #endif
     loadSettings();
 
-#if QT_VER_DEFINE >= 0x040500
+#if USE_NETWORK_DISK_CACHE
     QNetworkDiskCache *diskCache = new QNetworkDiskCache(this);
     QString location = QDesktopServices::storageLocation(QDesktopServices::CacheLocation)
                             + QLatin1String("/browser");
