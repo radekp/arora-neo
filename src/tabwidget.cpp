@@ -448,6 +448,7 @@ WebView *TabWidget::makeNewTab(bool makeCurrent)
         HistoryCompletionModel *completionModel = new HistoryCompletionModel(this);
         completionModel->setSourceModel(BrowserApplication::historyManager()->historyFilterModel());
         m_lineEditCompleter = new QCompleter(completionModel, this);
+        m_lineEditCompleter->setCompletionMode(QCompleter::InlineCompletion);
         connect(m_lineEditCompleter, SIGNAL(activated(const QString &)), this, SLOT(completerItemActivated(const QString &))); //
         // Should this be in Qt by default?
         QAbstractItemView *popup = m_lineEditCompleter->popup();
