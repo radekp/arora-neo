@@ -142,7 +142,7 @@ public:
 
     void setGlobalFingerScrolling(bool en);
     void setGlobalMobileUserAgent(bool en);
-    void startPlayer(QString vid_url = NULL);
+    void startPlayer(QString vid_url = QString());
 
 #if QT_VER_DEFINE < 0x040500
 protected:
