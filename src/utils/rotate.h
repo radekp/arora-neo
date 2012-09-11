@@ -11,8 +11,6 @@
 
 #include <QTimer>
 
-#define EVENT_PATH "/dev/input/event3"
-
 
 /**
  * Detects the orientation of the device, and will rotate the screen
@@ -30,6 +28,7 @@ class RotateHelper : public QObject
 	void stop();
 	void restore();
 	bool isLandscape();
+	void accel_sample(double acx, double acy, double acz);
 
  private slots:
 	void sample();
@@ -41,10 +40,7 @@ signals:
 	void maybe_rotate(int deg);
 	int neighbour(int value, int target, int neighbour);
 	int define_position(void);
-	int read_packet();
 	bool packet_reader();
-	
-	QTimer *timer;
 
 	enum Orientation {UP=0, RIGHT=90, DOWN=180, LEFT=270};
 
@@ -61,9 +57,12 @@ signals:
 	int down;
 	int last_pos;
 	int current_pos;
-	int event3;
 	int debug;
 	int initial_rotation;
-	ushort skip_zero;
+
+	static void accel_callback(void *closure,
+				   double acx,
+				   double acy,
+				   double acz);
 };
 #endif

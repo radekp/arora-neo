@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 
+#include <accelerometers.h>
+
 /**
  * The acceleromer algorithms and code taken from omnewrotate-0.5.4
  * Copyright © 2008 Rui Miguel Silva Seabra <rms@1407.org>
@@ -37,7 +39,6 @@
 
 RotateHelper::RotateHelper(QObject *parent, int dflg) : QObject(parent)
 {
-	timer= NULL;
 	x = 0;
 	y = 0;
 	z = 0;
@@ -51,9 +52,7 @@ RotateHelper::RotateHelper(QObject *parent, int dflg) : QObject(parent)
 	down = 0;
 	last_pos= -1;
 	current_pos = -1;
-	event3 = -1;
 	debug = dflg;
-	skip_zero = 1;
 	initial_rotation= -1;
 }
 
@@ -77,32 +76,16 @@ void RotateHelper::start(int timeinms)
 {
 	// remember where we were when we started
 	QValueSpaceItem vsiRot("/UI/Rotation/Current");
-    initial_rotation= vsiRot.value().toUInt();
-	
-	// don't allow multiple timers to run
-	if(timer != NULL){
-		stop();
-	}
+	initial_rotation= vsiRot.value().toUInt();
 
-	// start up a single shot timer to check accelerometers
-	// it will be restarted each time
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(sample()));
-	timer->start(timeinms);
+	// start accelerometer
+	accelerometer_start(timeinms, RotateHelper::accel_callback, this);
 }
 
 void RotateHelper::stop()
 {
-	if(timer != NULL){
-		timer->stop();
-		delete timer;
-		timer= NULL;
-	}
-
-	if(event3 != -1){
-		close(event3);
-		event3= -1;
-	}
+	// stop accelerometer
+	accelerometer_stop();
 }
 
 // restore to whatever the rotation was when we started
@@ -204,64 +187,27 @@ int RotateHelper::define_position(void)
 	return current_pos;
 }
 
-
-int RotateHelper::read_packet()
-{
-	static struct input_event event_x, event_y, event_z, event_syn;
-	void *packet_memcpy_result = NULL;
-	int packet_size = sizeof(struct input_event);
-	int size_of_packet = 4 * packet_size;
-	int bytes_read = 0;
-	char packet[size_of_packet];
-
-	bytes_read = read(event3, packet, size_of_packet);
-
-	if (bytes_read < packet_size)
-	{
-		qWarning("RotateHelper: fread failed");
-		stop();
-		return -1;
-	}
-
-	/* obtain the full packet */
-	packet_memcpy_result = memcpy(&event_x,   packet,                   packet_size);
-	packet_memcpy_result = memcpy(&event_y,   packet +     packet_size, packet_size);
-	packet_memcpy_result = memcpy(&event_z,   packet + 2 * packet_size, packet_size);
-	packet_memcpy_result = memcpy(&event_syn, packet + 3 * packet_size, packet_size);
-
-	if(skip_zero && (event_x.value == 0 || event_y.value == 0 || event_z.value == 0))
-	{
-		//	qDebug("Bad packet!");
-		return(0);
-	}
-
-	if (event_syn.type == EV_SYN)
-	{
-		x = event_x.value;
-		y = event_y.value;
-		z = event_z.value;
-
-		return (1);
-	}
-	else
-		return (0);
-}
-
 bool RotateHelper::packet_reader()
 {
-	if(event3 == -1){
-		event3 = open(EVENT_PATH, O_RDONLY);
+	return (x || y || z);
+}
 
-		if (event3 < 0){
-			qWarning("Can't open '%s': %s\n", EVENT_PATH, strerror(errno));
-			return false;
-		}
-		qDebug("Opened: %s", EVENT_PATH);
-	}
+void RotateHelper::accel_sample(double acx,
+				double acy,
+				double acz)
+{
+	x = 1000 * acx;
+	y = 1000 * acy;
+	z = 1000 * acz;
 
-	while(read_packet() == 0);
-	
-	// qDebug("read packet");
+	sample();
+}
 
-	return true;
+void RotateHelper::accel_callback(void *closure,
+				  double acx,
+				  double acy,
+				  double acz)
+{
+  RotateHelper *rotHelper = (RotateHelper *)closure;
+  rotHelper->accel_sample(acx, acy, acz);
 }
