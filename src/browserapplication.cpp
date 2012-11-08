@@ -83,8 +83,22 @@
 #include <qwebsettings.h>
 
 #include <QtopiaApplication>
+#include <QtopiaAbstractService>
 
 #include <qdebug.h>
+
+#include "webservice.h"
+
+void WebAccessService::openURL(QString url)
+{
+    emit openUrl(url);
+}
+
+void WebAccessService::openSecureURL(QString url)
+{
+    // XXX make sure this is a secure url
+    emit openUrl(url);
+}
 
 DownloadManager *BrowserApplication::s_downloadManager = 0;
 HistoryManager *BrowserApplication::s_historyManager = 0;
@@ -151,6 +165,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv)
     connect(this, SIGNAL(lastWindowClosed()),
             this, SLOT(lastWindowClosed()));
 #endif
+
+    QObject *service = new WebAccessService(this);
+    connect(service, SIGNAL(openUrl(const QString &)),
+	    this, SLOT(messageRecieved(const QString &)));
 
 #ifndef AUTOTESTS
     QTimer::singleShot(0, this, SLOT(postLaunch()));
@@ -455,6 +473,17 @@ BrowserMainWindow *BrowserApplication::newMainWindow()
     m_mainWindows.prepend(browser);
     setMainWidget(browser); //
     showMainWidget();
+
+    // Calling showMainWidget() a second time is the magic sauce that
+    // is needed for Qtopia not to kill Arora after it has processed a
+    // request for the WebAccess service.  When servicing a
+    // QtopiaServiceRequest requires _launching_ a new application -
+    // i.e. because a suitable application isn't already running -
+    // Qtopia's default behaviour is to close the launched application
+    // again as soon as it appears to have processed that request.
+    // For a web browser, we clearly don't want that.
+    showMainWidget();
+
 //    browser->show();
     return browser;
 }

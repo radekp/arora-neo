@@ -93,6 +93,7 @@ HEADERS += \
     tabwidget.h \
     toolbarsearch.h \
     webactionmapper.h \
+    webservice.h \
     webview.h \
     webviewsearch.h \
     xbel.h
@@ -151,3 +152,8 @@ SOURCES += \
     utils/rotate.cpp
 
 #-----------------------------------------------
+
+# Install service registration
+service.files=services/WebAccess/arora
+service.path=/services/WebAccess
+INSTALLS+=service
