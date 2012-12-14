@@ -145,14 +145,6 @@ SOURCES += \
 
 #-----------------------------------------------
 
-HEADERS += \
-    utils/rotate.h
-
-SOURCES += \
-    utils/rotate.cpp
-
-#-----------------------------------------------
-
 # Install service registration
 service.files=services/WebAccess/arora
 service.path=/services/WebAccess

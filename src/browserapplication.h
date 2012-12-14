@@ -63,8 +63,8 @@
 #ifndef BROWSERAPPLICATION_H
 #define BROWSERAPPLICATION_H
 
+#include <rotatehelper.h>
 #include "singleapplication.h"
-#include "rotate.h"
 
 #include <qicon.h>
 #include <qpointer.h>
