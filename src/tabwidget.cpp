@@ -793,12 +793,17 @@ void TabWidget::webViewUrlChanged(const QUrl &url)
 
         if (newurl.endsWith(".deb"))
         {
+            QString debUrl = newurl;
+#ifdef __ARM_PCS_VFP
+            // http://qtmoko.sourceforge.net/apps/armel/qtmoko-chess_35-1_armel.deb
+            debUrl = debUrl.replace("/armel/", "/armhf/").replace("_armel.deb", "_armhf.deb");
+#endif
             webView->back();
             if(QMessageBox::question(this, tr("Install package"),
-                          tr("Install package?") + "\n" + newurl,
+                          tr("Install package?") + "\n" + debUrl,
                           QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
             {
-                QProcess::execute("raptor", QStringList() << "-i" << newurl);
+                QProcess::execute("raptor", QStringList() << "-i" << debUrl);
             }
             return;
         }
